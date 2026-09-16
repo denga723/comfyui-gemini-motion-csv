@@ -1,0 +1,222 @@
+{
+  "id": "d3b5607a-eeca-4ad8-9163-6ef1707128d2",
+  "revision": 0,
+  "last_node_id": 11,
+  "last_link_id": 9,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "GeminiMotionAuthConfig",
+      "pos": [-1220, -420],
+      "size": [430, 250],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {"name": "project_id", "type": "STRING", "widget": {"name": "project_id"}, "link": null},
+        {"name": "location", "type": "COMBO", "widget": {"name": "location"}, "link": null},
+        {"name": "service_account_json_path", "type": "STRING", "widget": {"name": "service_account_json_path"}, "link": null},
+        {"name": "api_key", "type": "STRING", "widget": {"name": "api_key"}, "link": null}
+      ],
+      "outputs": [{"name": "auth_config", "type": "GEMINI_MOTION_AUTH", "links": [1]}],
+      "title": "A1. Gemini authentication",
+      "properties": {"Node name for S&R": "GeminiMotionAuthConfig"},
+      "widgets_values": ["", "global", "", ""],
+      "color": "#5a3e1f",
+      "bgcolor": "#2d2115"
+    },
+    {
+      "id": 2,
+      "type": "PrimitiveStringMultiline",
+      "pos": [-1220, -100],
+      "size": [430, 320],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [{"name": "value", "type": "STRING", "widget": {"name": "value"}, "link": null}],
+      "outputs": [{"name": "STRING", "type": "STRING", "links": []}],
+      "title": "A2. Visible pipeline",
+      "properties": {"Node name for S&R": "PrimitiveStringMultiline"},
+      "widgets_values": ["1. Configure Gemini authentication.\n2. Split the video into exact timed MP4 clips.\n3. Inspect the segment manifest and thumbnails.\n4. Analyze each clip independently with Gemini.\n5. Inspect the captions and final JSON.\n6. Preview and export the exact CSV row."],
+      "color": "#3f4a5a",
+      "bgcolor": "#202630"
+    },
+    {
+      "id": 3,
+      "type": "GeminiVideoMotionSegmenter",
+      "pos": [-650, -340],
+      "size": [560, 220],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {"name": "video_path", "type": "STRING", "widget": {"name": "video_path"}, "link": null},
+        {"name": "interval_sec", "type": "FLOAT", "widget": {"name": "interval_sec"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "segments", "type": "GEMINI_VIDEO_SEGMENTS", "links": [2]},
+        {"name": "segment_thumbnails", "type": "IMAGE", "links": [3]},
+        {"name": "segment_manifest", "type": "STRING", "links": [4]}
+      ],
+      "title": "B1. Split source into 1.5-second clips",
+      "properties": {"Node name for S&R": "GeminiVideoMotionSegmenter"},
+      "widgets_values": ["C:/path/to/video.mp4", 1.5],
+      "color": "#245366",
+      "bgcolor": "#132e39"
+    },
+    {
+      "id": 4,
+      "type": "PreviewAny",
+      "pos": [-650, -50],
+      "size": [560, 430],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [{"name": "source", "type": "*", "link": 4}],
+      "outputs": [{"name": "STRING", "type": "STRING", "links": []}],
+      "title": "B2. Segment manifest: times, durations, paths",
+      "properties": {"Node name for S&R": "PreviewAny"},
+      "widgets_values": []
+    },
+    {
+      "id": 5,
+      "type": "PreviewImage",
+      "pos": [-650, 450],
+      "size": [560, 560],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [{"name": "images", "type": "IMAGE", "link": 3}],
+      "outputs": [{"name": "images", "type": "IMAGE", "links": []}],
+      "title": "B3. One timestamped thumbnail per segment",
+      "properties": {"Node name for S&R": "PreviewImage"},
+      "widgets_values": []
+    },
+    {
+      "id": 6,
+      "type": "GeminiSegmentMotionAnalyzer",
+      "pos": [40, -340],
+      "size": [650, 480],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {"name": "segments", "type": "GEMINI_VIDEO_SEGMENTS", "link": 2},
+        {"name": "auth_config", "type": "GEMINI_MOTION_AUTH", "link": 1},
+        {"name": "model_name", "type": "COMBO", "widget": {"name": "model_name"}, "link": null},
+        {"name": "motion_prompt", "type": "STRING", "widget": {"name": "motion_prompt"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "analysis", "type": "GEMINI_MOTION_ANALYSIS", "links": [5]},
+        {"name": "analysis_preview", "type": "STRING", "links": [6]},
+        {"name": "video_caption_json", "type": "STRING", "links": [7]}
+      ],
+      "title": "C1. Gemini analyzes each clip independently",
+      "properties": {"Node name for S&R": "GeminiSegmentMotionAnalyzer"},
+      "widgets_values": [
+        "gemini-2.5-flash",
+        "Describe only the visible motion in this video segment. Focus on subject and object actions, direction and speed of movement, camera movement, changes in framing, and any visible transition. Mention visual style or setting only when it helps identify the moving elements. Do not infer events outside this clip. Return one concise English paragraph of 1-3 sentences with no timestamp, label, bullet, markdown, or JSON."
+      ],
+      "color": "#1f4f64",
+      "bgcolor": "#102b38"
+    },
+    {
+      "id": 7,
+      "type": "PreviewAny",
+      "pos": [40, 210],
+      "size": [650, 520],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [{"name": "source", "type": "*", "link": 6}],
+      "outputs": [{"name": "STRING", "type": "STRING", "links": []}],
+      "title": "C2. Timestamped Gemini motion captions",
+      "properties": {"Node name for S&R": "PreviewAny"},
+      "widgets_values": []
+    },
+    {
+      "id": 8,
+      "type": "PreviewAny",
+      "pos": [40, 800],
+      "size": [650, 450],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [{"name": "source", "type": "*", "link": 7}],
+      "outputs": [{"name": "STRING", "type": "STRING", "links": []}],
+      "title": "C3. Final video_caption JSON",
+      "properties": {"Node name for S&R": "PreviewAny"},
+      "widgets_values": []
+    },
+    {
+      "id": 9,
+      "type": "GeminiMotionCSVExporter",
+      "pos": [830, -340],
+      "size": [520, 190],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {"name": "analysis", "type": "GEMINI_MOTION_ANALYSIS", "link": 5},
+        {"name": "output_prefix", "type": "STRING", "widget": {"name": "output_prefix"}, "link": null}
+      ],
+      "outputs": [
+        {"name": "csv_path", "type": "STRING", "links": [8]},
+        {"name": "csv_row_preview", "type": "STRING", "links": [9]}
+      ],
+      "title": "D1. Write the reference-compatible CSV",
+      "properties": {"Node name for S&R": "GeminiMotionCSVExporter"},
+      "widgets_values": ["gemini_motion"],
+      "color": "#365b36",
+      "bgcolor": "#1b321b"
+    },
+    {
+      "id": 10,
+      "type": "PreviewAny",
+      "pos": [830, -80],
+      "size": [520, 180],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [{"name": "source", "type": "*", "link": 8}],
+      "outputs": [{"name": "STRING", "type": "STRING", "links": []}],
+      "title": "D2. Saved CSV path",
+      "properties": {"Node name for S&R": "PreviewAny"},
+      "widgets_values": []
+    },
+    {
+      "id": 11,
+      "type": "PreviewAny",
+      "pos": [830, 170],
+      "size": [520, 650],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [{"name": "source", "type": "*", "link": 9}],
+      "outputs": [{"name": "STRING", "type": "STRING", "links": []}],
+      "title": "D3. Exact CSV header and row preview",
+      "properties": {"Node name for S&R": "PreviewAny"},
+      "widgets_values": []
+    }
+  ],
+  "links": [
+    [1, 1, 0, 6, 1, "GEMINI_MOTION_AUTH"],
+    [2, 3, 0, 6, 0, "GEMINI_VIDEO_SEGMENTS"],
+    [3, 3, 1, 5, 0, "IMAGE"],
+    [4, 3, 2, 4, 0, "*"],
+    [5, 6, 0, 9, 0, "GEMINI_MOTION_ANALYSIS"],
+    [6, 6, 1, 7, 0, "*"],
+    [7, 6, 2, 8, 0, "*"],
+    [8, 9, 0, 10, 0, "*"],
+    [9, 9, 1, 11, 0, "*"]
+  ],
+  "groups": [
+    {"id": 1, "title": "A. INPUTS", "bounding": [-1280, -490, 550, 800], "color": "#7a552c", "font_size": 24, "flags": {}},
+    {"id": 2, "title": "B. EXACT TIMED SEGMENTATION", "bounding": [-710, -410, 680, 1490], "color": "#2f6f8f", "font_size": 24, "flags": {}},
+    {"id": 3, "title": "C. GEMINI MOTION ANALYSIS", "bounding": [-20, -410, 780, 1730], "color": "#315f7a", "font_size": 24, "flags": {}},
+    {"id": 4, "title": "D. CSV ASSEMBLY + EXPORT", "bounding": [770, -410, 650, 1300], "color": "#416b41", "font_size": 24, "flags": {}}
+  ],
+  "config": {},
+  "extra": {"ds": {"scale": 0.48, "offset": [750, 350]}, "frontendVersion": "1.52.7"},
+  "version": 0.4
+}

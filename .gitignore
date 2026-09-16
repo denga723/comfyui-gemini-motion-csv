@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.m4v
+*.csv
+*.json.key
+*service-account*.json
+credentials*.json
